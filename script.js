@@ -105,3 +105,26 @@ if (isNaN(intento2) || intento2 < 1 || intento2 > 100) {
     alert(`Muy ${pista}. El número era ${numeroSecreto}`);
 }
 }
+
+// === CALCULADORA DE DESCUENTOS ===
+console.log('-----------------------');
+console.log('- Calculadora de Descuentos -');
+
+//Necesitas exactamente un if, un else if y un else. Cada rama asigna un porcentaje diferente. El alert() va una sola vez, al final, mostrando el precio final con el descuento aplicado.
+let precioOriginal = prompt('Ingresa el precio original:');
+precioOriginal = Number(precioOriginal);
+let descuento;
+
+if (isNaN(precioOriginal) || precioOriginal < 0) {
+    alert('⚠️ Precio inválido. Por favor ingresa un número positivo.');
+} else if (precioOriginal >= 100) {
+    descuento = 20;
+} else if (precioOriginal >= 50) {
+    descuento = 10;
+} else {
+    descuento = 0;
+}
+if (!isNaN(precioOriginal) && precioOriginal >= 0) {
+    let precioFinal = precioOriginal * (1 - descuento / 100);
+    alert(`El precio final con descuento es: $${precioFinal.toFixed(2)} (Descuento aplicado: ${descuento}%)`);
+}
