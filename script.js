@@ -25,17 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
     configurarEventos();
 });
 // ========== FUNCIONES PRINCIPALES ==========
-
-/**
- * Inicializa o reinicia el juego
- */
+/*Inicializa o reinicia el juego*/
 function reiniciarJuego() {
     numeroSecreto = Math.floor(Math.random() * 100) + 1;
     intentos = 0;
     minRango = 1;
     maxRango = 100;
     juegoTerminado = false;
-
     // Limpiar UI
     mensaje.textContent = '';
     mensaje.className = 'mensaje';
@@ -48,20 +44,15 @@ function reiniciarJuego() {
     historial.innerHTML = '';
     historialContainer.style.display = 'none';
     gameCard.classList.remove('celebracion-ganador');
-    
     // Actualizar contadores
     contador.textContent = '0';
     rango.textContent = '1 - 100';
     limiteSpan.textContent = LIMITE_INTENTOS;
-
     // Focus en el input
     inputIntento.focus();
-
     console.log('(DEBUG) Número secreto:', numeroSecreto);
 }
-/**
- * Configura los event listeners
- */
+/*Configura los event listeners*/
 function configurarEventos() {
     btnAdivinar.addEventListener('click', verificarIntento);
     inputIntento.addEventListener('keypress', (e) => {
@@ -71,23 +62,18 @@ function configurarEventos() {
     });
     btnReiniciar.addEventListener('click', reiniciarJuego);
 }
-/**
- * Verifica el intento del jugador
- */
+/*Verifica el intento del jugador*/
 function verificarIntento() {
     const intento = Number(inputIntento.value);
-
     // Validaciones de entrada
     if (!intento || isNaN(intento)) {
         mostrarMensaje('⚠️ Por favor ingresa un número válido', '');
         return;
     }
-
     if (intento < 1 || intento > 100) {
         mostrarMensaje('⚠️ El número debe estar entre 1 y 100', '');
         return;
     }
-
     if (intento < minRango || intento > maxRango) {
         mostrarMensaje(
             `⚠️ El número está fuera del rango válido (${minRango} - ${maxRango})`,
@@ -95,23 +81,19 @@ function verificarIntento() {
         );
         return;
     }
-
     // Procesar intento válido
     intentos++;
     contador.textContent = intentos;
     agregarAlHistorial(intento);
-
     // Verificar si es la respuesta correcta
     if (intento === numeroSecreto) {
         ganarJuego();
         return;
     }
-
     // Verificar Game Over
     if (verificarGameOver()) {
         return;
     }
-
     // Actualizar rango y mostrar pista
     if (intento > numeroSecreto) {
         maxRango = intento - 1;
@@ -122,12 +104,29 @@ function verificarIntento() {
         mostrarMensaje('📉 Muy bajo', calcularPista(intento));
         mensaje.classList.add('bajo');
     }
-
     actualizarRango();
     inputIntento.value = '';
     inputIntento.focus();
 }
-
+/**
+ * Verifica si el juego terminó (Game Over)
+ * @returns {boolean} true si es Game Over, false en caso contrario
+ */
+function verificarGameOver() {
+    if (intentos >= LIMITE_INTENTOS) {
+        juegoTerminado = true;
+        mostrarMensaje(
+            `💀 GAME OVER - El número era ${numeroSecreto}`,
+            `Alcanzaste el límite de ${LIMITE_INTENTOS} intentos`
+        );
+        mensaje.classList.add('alto');
+        inputIntento.disabled = true;
+        btnAdivinar.disabled = true;
+        btnReiniciar.style.display = 'block';
+        return true;
+    }
+    return false;
+}
 /**
  * Muestra un mensaje en la pantalla
  * @param {string} texto - Texto del mensaje principal
@@ -137,7 +136,6 @@ function mostrarMensaje(texto, subTexto) {
     mensaje.textContent = texto;
     pista.textContent = subTexto;
 }
-
 /**
  * Calcula y retorna la pista de cercanía
  * @param {number} intento - El número ingresado por el jugador
@@ -145,7 +143,6 @@ function mostrarMensaje(texto, subTexto) {
  */
 function calcularPista(intento) {
     const diferencia = Math.abs(intento - numeroSecreto);
-
     if (diferencia <= 5) {
         pista.classList.add('cerca');
         return '🔥 ¡Estás muy cerca!';
@@ -162,21 +159,19 @@ function calcularPista(intento) {
         return '❄️ Estás bastante lejos';
     }
 }
-
-/**
- * Maneja el evento de ganar
- */
+/*Maneja el evento de ganar*/
 function ganarJuego() {
     juegoTerminado = true;
     mostrarMensaje(`🎉 ¡Correcto! El número era ${numeroSecreto}`, '');
     mensaje.classList.add('correcto');
+    // Agregar celebración visual a la tarjeta
+    gameCard.classList.add('celebracion-ganador');
     // Actualizar mejor puntaje
     if (mejorPuntaje === null || intentos < mejorPuntaje) {
         mejorPuntaje = intentos;
         localStorage.setItem('mejorPuntaje', mejorPuntaje);
         mejorPuntajeSpan.textContent = mejorPuntaje;
     }
-
     // Calcular desempeño
     let desempeño = '';
     if (intentos === 1) {
@@ -188,23 +183,18 @@ function ganarJuego() {
     } else {
         desempeño = 'Necesitabas varios intentos, ¡pero lo lograste!';
     }
-
     setTimeout(() => {
         pista.textContent = `${desempeño} (${intentos} intento${intentos !== 1 ? 's' : ''})`;
         pista.style.color = '#27ae60';
     }, 500);
-
     inputIntento.disabled = true;
     btnAdivinar.disabled = true;
     btnReiniciar.style.display = 'block';
 }
-/**
- * Actualiza el rango mostrado en pantalla
- */
+/* Actualiza el rango mostrado en pantalla*/
 function actualizarRango() {
     rango.textContent = `${minRango} - ${maxRango}`;
 }
-
 /**
  * Agrega un intento al historial visual
  * @param {number} intento - El número del intento
@@ -213,11 +203,9 @@ function agregarAlHistorial(intento) {
     if (historialContainer.style.display === 'none') {
         historialContainer.style.display = 'block';
     }
-
     const badge = document.createElement('div');
     badge.className = 'intento-badge';
     badge.textContent = intento;
-
     if (intento === numeroSecreto) {
         badge.classList.add('correcto');
     } else if (intento > numeroSecreto) {
@@ -225,10 +213,8 @@ function agregarAlHistorial(intento) {
     } else {
         badge.classList.add('bajo');
     }
-
     historial.appendChild(badge);
 }
-
 // Mostrar mejor puntaje guardado al cargar
 window.addEventListener('load', () => {
     if (mejorPuntaje !== null) {
