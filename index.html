@@ -1,12 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adivina el Numero</title>
+    <title>🎯 Adivina el Número</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Adivina el Número</h1>
+    <div class="container">
+        <div class="game-card" id="gameCard">
+            <div class="game-header">
+                <h1>🎯 Adivina el Número</h1>
+                <p class="subtitle">Estoy pensando en un número del 1 al 100...</p>
+            </div>
+
+            <div class="game-content">
+                <div class="controls">
+                    <input 
+                        type="number" 
+                        id="inputIntento" 
+                        min="1" 
+                        max="100" 
+                        placeholder="Ingresa tu número..."
+                        autocomplete="off"
+                    >
+                    <button id="btnAdivinar" class="btn-primary">Adivinar</button>
+                </div>
+
+                <div class="feedback-zone">
+                    <p id="mensaje" class="mensaje"></p>
+                    <p id="pista" class="pista"></p>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Intentos:</span>
+                        <span id="contador" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Rango:</span>
+                        <span id="rango" class="stat-value">1 - 100</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Límite:</span>
+                        <span id="limite" class="stat-value">10</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">🏆 Mejor:</span>
+                        <span id="mejorPuntaje" class="stat-value">--</span>
+                    </div>
+                </div>
+
+                <div id="historialContainer" class="historial-container" style="display: none;">
+                    <h3>📋 Historial de intentos</h3>
+                    <div id="historial" class="historial"></div>
+                </div>
+
+                <button id="btnReiniciar" class="btn-secondary" style="display: none;">
+                    🔄 Jugar de nuevo
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
