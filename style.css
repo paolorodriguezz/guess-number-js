@@ -72,6 +72,37 @@ body {
     display: flex;
     gap: 12px;
     margin-bottom: 30px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.difficulty-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 120px;
+}
+
+.difficulty-selector label {
+    font-size: 0.85em;
+    color: #666;
+    font-weight: 600;
+}
+
+.difficulty-selector select {
+    padding: 12px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: white;
+    color: #333;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.difficulty-selector select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 #inputIntento {

@@ -5,7 +5,12 @@ let intentos = 0;
 let juegoTerminado = false;
 let minRango = 1;
 let maxRango = 100;
-const LIMITE_INTENTOS = 10;
+const DIFICULTADES = {
+    facil: { limite: 15, max: 50 },
+    normal: { limite: 10, max: 100 },
+    dificil: { limite: 5, max: 200 },
+};
+let limiteIntentos = DIFICULTADES.normal.limite;
 // ========== ELEMENTOS DEL DOM (const) ==========
 const inputIntento = document.getElementById('inputIntento');
 const btnAdivinar = document.getElementById('btnAdivinar');
@@ -19,6 +24,9 @@ const historialContainer = document.getElementById('historialContainer');
 const gameCard = document.getElementById('gameCard');
 const mejorPuntajeSpan = document.getElementById('mejorPuntaje');
 const limiteSpan = document.getElementById('limite');
+const dificultadSpan = document.getElementById('dificultad');
+const difficultySelector = document.getElementById('difficultySelector');
+const subtitle = document.getElementById('subtitle');
 // ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', () => {
     reiniciarJuego();
@@ -27,10 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========== FUNCIONES PRINCIPALES ==========
 /*Inicializa o reinicia el juego*/
 function reiniciarJuego() {
-    numeroSecreto = Math.floor(Math.random() * 100) + 1;
-    intentos = 0;
+    const modo = difficultySelector?.value || 'normal';
     minRango = 1;
-    maxRango = 100;
+    maxRango = DIFICULTADES[modo].max;
+    limiteIntentos = DIFICULTADES[modo].limite;
+    numeroSecreto = Math.floor(Math.random() * maxRango) + 1;
+    intentos = 0;
     juegoTerminado = false;
     // Limpiar UI
     mensaje.textContent = '';
@@ -46,8 +56,13 @@ function reiniciarJuego() {
     gameCard.classList.remove('celebracion-ganador');
     // Actualizar contadores
     contador.textContent = '0';
-    rango.textContent = '1 - 100';
-    limiteSpan.textContent = LIMITE_INTENTOS;
+    rango.textContent = `1 - ${maxRango}`;
+    inputIntento.max = maxRango;
+    limiteSpan.textContent = limiteIntentos;
+    dificultadSpan.textContent = modo === 'facil' ? 'Fácil' : modo === 'dificil' ? 'Difícil' : 'Normal';
+    if (subtitle) {
+        subtitle.textContent = `Estoy pensando en un número del 1 al ${maxRango}...`;
+    }
     // Focus en el input
     inputIntento.focus();
     console.log('(DEBUG) Número secreto:', numeroSecreto);
@@ -61,6 +76,7 @@ function configurarEventos() {
         }
     });
     btnReiniciar.addEventListener('click', reiniciarJuego);
+    difficultySelector?.addEventListener('change', reiniciarJuego);
 }
 /*Verifica el intento del jugador*/
 function verificarIntento() {
@@ -70,8 +86,8 @@ function verificarIntento() {
         mostrarMensaje('⚠️ Por favor ingresa un número válido', '');
         return;
     }
-    if (intento < 1 || intento > 100) {
-        mostrarMensaje('⚠️ El número debe estar entre 1 y 100', '');
+    if (intento < 1 || intento > maxRango) {
+        mostrarMensaje(`⚠️ El número debe estar entre 1 y ${maxRango}`, '');
         return;
     }
     if (intento < minRango || intento > maxRango) {
@@ -113,11 +129,11 @@ function verificarIntento() {
  * @returns {boolean} true si es Game Over, false en caso contrario
  */
 function verificarGameOver() {
-    if (intentos >= LIMITE_INTENTOS) {
+    if (intentos >= limiteIntentos) {
         juegoTerminado = true;
         mostrarMensaje(
             `💀 GAME OVER - El número era ${numeroSecreto}`,
-            `Alcanzaste el límite de ${LIMITE_INTENTOS} intentos`
+            `Alcanzaste el límite de ${limiteIntentos} intentos`
         );
         mensaje.classList.add('alto');
         inputIntento.disabled = true;
