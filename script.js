@@ -1,130 +1,237 @@
-// === ADIVINA EL NÚMERO ===
-// El programa genera un número secreto entre 1 y 100
-// El jugador intenta adivinarlo
-/*
-console.log('- Adivina el Número -');
+// ========== VARIABLES GLOBALES ==========
+let mejorPuntaje = localStorage.getItem('mejorPuntaje') ? parseInt(localStorage.getItem('mejorPuntaje')) : null;
+let numeroSecreto = null;
+let intentos = 0;
+let juegoTerminado = false;
+let minRango = 1;
+let maxRango = 100;
+const LIMITE_INTENTOS = 10;
+// ========== ELEMENTOS DEL DOM (const) ==========
+const inputIntento = document.getElementById('inputIntento');
+const btnAdivinar = document.getElementById('btnAdivinar');
+const btnReiniciar = document.getElementById('btnReiniciar');
+const mensaje = document.getElementById('mensaje');
+const pista = document.getElementById('pista');
+const contador = document.getElementById('contador');
+const rango = document.getElementById('rango');
+const historial = document.getElementById('historial');
+const historialContainer = document.getElementById('historialContainer');
+const gameCard = document.getElementById('gameCard');
+const mejorPuntajeSpan = document.getElementById('mejorPuntaje');
+const limiteSpan = document.getElementById('limite');
+// ========== INICIALIZACIÓN ==========
+document.addEventListener('DOMContentLoaded', () => {
+    reiniciarJuego();
+    configurarEventos();
+});
+// ========== FUNCIONES PRINCIPALES ==========
 
-// Generar número secreto
-const numeroSecreto = Math.floor(Math.random() * 100) + 1;
+/**
+ * Inicializa o reinicia el juego
+ */
+function reiniciarJuego() {
+    numeroSecreto = Math.floor(Math.random() * 100) + 1;
+    intentos = 0;
+    minRango = 1;
+    maxRango = 100;
+    juegoTerminado = false;
 
-//temporal
-console.log('(DEBUG) Número secreto:', numeroSecreto);
+    // Limpiar UI
+    mensaje.textContent = '';
+    mensaje.className = 'mensaje';
+    pista.textContent = '';
+    pista.className = 'pista';
+    inputIntento.value = '';
+    inputIntento.disabled = false;
+    btnAdivinar.disabled = false;
+    btnReiniciar.style.display = 'none';
+    historial.innerHTML = '';
+    historialContainer.style.display = 'none';
+    gameCard.classList.remove('celebracion-ganador');
+    
+    // Actualizar contadores
+    contador.textContent = '0';
+    rango.textContent = '1 - 100';
+    limiteSpan.textContent = LIMITE_INTENTOS;
 
-console.log('-----------------------');
+    // Focus en el input
+    inputIntento.focus();
 
-let intento = prompt('Adivina el numero (1-100):');
-intento = Number(intento);
+    console.log('(DEBUG) Número secreto:', numeroSecreto);
+}
+/**
+ * Configura los event listeners
+ */
+function configurarEventos() {
+    btnAdivinar.addEventListener('click', verificarIntento);
+    inputIntento.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !juegoTerminado) {
+            verificarIntento();
+        }
+    });
+    btnReiniciar.addEventListener('click', reiniciarJuego);
+}
+/**
+ * Verifica el intento del jugador
+ */
+function verificarIntento() {
+    const intento = Number(inputIntento.value);
 
-console.log('Intento del jugador:', intento);
-console.log('Tipo:', typeof intento);
+    // Validaciones de entrada
+    if (!intento || isNaN(intento)) {
+        mostrarMensaje('⚠️ Por favor ingresa un número válido', '');
+        return;
+    }
 
-console.log('-----------------------');
+    if (intento < 1 || intento > 100) {
+        mostrarMensaje('⚠️ El número debe estar entre 1 y 100', '');
+        return;
+    }
 
-// - Pistas alto/bajo/correcto -
-if (intento === numeroSecreto) {
-    alert('🎉 ¡Correcto! El número era ' + numeroSecreto);
-    console.log('Resultado: ¡GANÓ!');
-}else if (intento > numeroSecreto) {
-    alert('📈 Muy alto. Intenta un número más bajo.');
-    console.log('Resultado: muy alto');
-}else {
-    alert('📉 Muy bajo. Intenta un número más alto.');
-    console.log('Resultado: muy bajo');
+    if (intento < minRango || intento > maxRango) {
+        mostrarMensaje(
+            `⚠️ El número está fuera del rango válido (${minRango} - ${maxRango})`,
+            ''
+        );
+        return;
+    }
+
+    // Procesar intento válido
+    intentos++;
+    contador.textContent = intentos;
+    agregarAlHistorial(intento);
+
+    // Verificar si es la respuesta correcta
+    if (intento === numeroSecreto) {
+        ganarJuego();
+        return;
+    }
+
+    // Verificar Game Over
+    if (verificarGameOver()) {
+        return;
+    }
+
+    // Actualizar rango y mostrar pista
+    if (intento > numeroSecreto) {
+        maxRango = intento - 1;
+        mostrarMensaje('📈 Muy alto', calcularPista(intento));
+        mensaje.classList.add('alto');
+    } else {
+        minRango = intento + 1;
+        mostrarMensaje('📉 Muy bajo', calcularPista(intento));
+        mensaje.classList.add('bajo');
+    }
+
+    actualizarRango();
+    inputIntento.value = '';
+    inputIntento.focus();
 }
 
-// - Segundo intento -
-if (intento !== numeroSecreto) {
-    let intento2 = prompt('Intenta de nuevo (1-100):');
-    intento2 = Number(intento2);
-if (intento2 === numeroSecreto) {
-    alert('🎉 ¡Correcto en el segundo intento!');
-}else if (intento2 > numeroSecreto) {
-    alert('📈 Muy alto. El número era ' + numeroSecreto);
-} else {
-    alert('📉 Muy bajo. El número era ' + numeroSecreto);
-}
+/**
+ * Muestra un mensaje en la pantalla
+ * @param {string} texto - Texto del mensaje principal
+ * @param {string} subTexto - Texto de la pista o subtexto
+ */
+function mostrarMensaje(texto, subTexto) {
+    mensaje.textContent = texto;
+    pista.textContent = subTexto;
 }
 
-console.log('-----------------------');
+/**
+ * Calcula y retorna la pista de cercanía
+ * @param {number} intento - El número ingresado por el jugador
+ * @returns {string} La pista de cercanía
+ */
+function calcularPista(intento) {
+    const diferencia = Math.abs(intento - numeroSecreto);
 
-// AND (&&): ambas deben ser true
-let edad = 25;
-let tieneLicencia = true;
-console.log(edad >= 18 && tieneLicencia);  // true
-
-// OR (||): al menos una debe ser true
-let esFeriado = false;
-let esDomingo = true;
-console.log(esFeriado || esDomingo);  // true (domingo es true)
-
-// NOT (!): invierte el valor
-let lloviendo = false;
-console.log(!lloviendo);  // true (NO está lloviendo)
-
-console.log('-----------------------');
-*/
-
-//VALIDACIONES DE ENTRADA DEL USUARIO
-console.log('- Validación de Entrada -');
-
-// === ADIVINA EL NÚMERO ===
-const numeroSecreto = Math.floor(Math.random() * 100) + 1;
-console.log('(DEBUG) Número secreto:', numeroSecreto);
-
-let intento = prompt('Adivina el número (1-100):');
-intento = Number(intento);
-
-if (isNaN(intento)) {
-    alert('⚠️ Eso no es un número. Por favor ingresa un número del 1 al 100.');
-}else if (intento < 1 || intento > 100) {
-    alert('⚠️ El número debe estar entre 1 y 100.');
-}else if (intento === numeroSecreto) {
-    alert('🎉 ¡Correcto! El número era ' + numeroSecreto);
-}else if (intento > numeroSecreto) {
-    alert('📈 Muy alto. Intenta un número más bajo.');
-}else {
-    alert('📉 Muy bajo. Intenta un número más alto.');
+    if (diferencia <= 5) {
+        pista.classList.add('cerca');
+        return '🔥 ¡Estás muy cerca!';
+    } else if (diferencia <= 10) {
+        pista.classList.add('cerca');
+        return '🔥 ¡Estás cerca!';
+    } else if (diferencia <= 20) {
+        pista.classList.remove('cerca');
+        pista.classList.add('lejos');
+        return '🌡️ Estás en el camino...';
+    } else {
+        pista.classList.remove('cerca');
+        pista.classList.add('lejos');
+        return '❄️ Estás bastante lejos';
+    }
 }
 
-// --- Pista de cercanía ---
-let diferencia = Math.abs(intento - numeroSecreto);
-let cercanía = diferencia <= 10 ? '🔥 ¡Estás cerca!' : '❄️ Estás lejos';
-console.log(cercanía);
+/**
+ * Maneja el evento de ganar
+ */
+function ganarJuego() {
+    juegoTerminado = true;
+    mostrarMensaje(`🎉 ¡Correcto! El número era ${numeroSecreto}`, '');
+    mensaje.classList.add('correcto');
+    // Actualizar mejor puntaje
+    if (mejorPuntaje === null || intentos < mejorPuntaje) {
+        mejorPuntaje = intentos;
+        localStorage.setItem('mejorPuntaje', mejorPuntaje);
+        mejorPuntajeSpan.textContent = mejorPuntaje;
+    }
 
-// - Segundo intento (si no acertó) -
-if (!isNaN(intento) && intento >= 1 && intento <= 100 && intento !== numeroSecreto) {
-let intento2 = prompt('Intenta de nuevo (1-100):');
-    intento2 = Number(intento2);
+    // Calcular desempeño
+    let desempeño = '';
+    if (intentos === 1) {
+        desempeño = '¡Impresionante! ¡Lo adivinaste a la primera!';
+    } else if (intentos <= 3) {
+        desempeño = '¡Excelente! Muy pocos intentos.';
+    } else if (intentos <= 7) {
+        desempeño = '¡Bien! Seguiste una buena estrategia.';
+    } else {
+        desempeño = 'Necesitabas varios intentos, ¡pero lo lograste!';
+    }
 
-if (isNaN(intento2) || intento2 < 1 || intento2 > 100) {
-    alert('⚠️ Entrada inválida. El número era ' + numeroSecreto);
-} else if (intento2 === numeroSecreto) {
-    alert('🎉 ¡Correcto en el segundo intento! El número era ' + numeroSecreto);
-} else {
-    let pista = intento2 > numeroSecreto ? 'alto' : 'bajo';
-    alert(`Muy ${pista}. El número era ${numeroSecreto}`);
+    setTimeout(() => {
+        pista.textContent = `${desempeño} (${intentos} intento${intentos !== 1 ? 's' : ''})`;
+        pista.style.color = '#27ae60';
+    }, 500);
+
+    inputIntento.disabled = true;
+    btnAdivinar.disabled = true;
+    btnReiniciar.style.display = 'block';
 }
+/**
+ * Actualiza el rango mostrado en pantalla
+ */
+function actualizarRango() {
+    rango.textContent = `${minRango} - ${maxRango}`;
 }
 
-// === CALCULADORA DE DESCUENTOS ===
-console.log('-----------------------');
-console.log('- Calculadora de Descuentos -');
+/**
+ * Agrega un intento al historial visual
+ * @param {number} intento - El número del intento
+ */
+function agregarAlHistorial(intento) {
+    if (historialContainer.style.display === 'none') {
+        historialContainer.style.display = 'block';
+    }
 
-//Necesitas exactamente un if, un else if y un else. Cada rama asigna un porcentaje diferente. El alert() va una sola vez, al final, mostrando el precio final con el descuento aplicado.
-let precioOriginal = prompt('Ingresa el precio original:');
-precioOriginal = Number(precioOriginal);
-let descuento;
+    const badge = document.createElement('div');
+    badge.className = 'intento-badge';
+    badge.textContent = intento;
 
-if (isNaN(precioOriginal) || precioOriginal < 0) {
-    alert('⚠️ Precio inválido. Por favor ingresa un número positivo.');
-} else if (precioOriginal >= 100) {
-    descuento = 20;
-} else if (precioOriginal >= 50) {
-    descuento = 10;
-} else {
-    descuento = 0;
+    if (intento === numeroSecreto) {
+        badge.classList.add('correcto');
+    } else if (intento > numeroSecreto) {
+        badge.classList.add('alto');
+    } else {
+        badge.classList.add('bajo');
+    }
+
+    historial.appendChild(badge);
 }
-if (!isNaN(precioOriginal) && precioOriginal >= 0) {
-    let precioFinal = precioOriginal * (1 - descuento / 100);
-    alert(`El precio final con descuento es: $${precioFinal.toFixed(2)} (Descuento aplicado: ${descuento}%)`);
-}
+
+// Mostrar mejor puntaje guardado al cargar
+window.addEventListener('load', () => {
+    if (mejorPuntaje !== null) {
+        mejorPuntajeSpan.textContent = mejorPuntaje;
+    }
+});
